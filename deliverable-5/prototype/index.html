@@ -627,6 +627,42 @@
       render();
     }
 
+    function finalizePayRun() {
+      const eligible = state.entries.filter(e => e.status === "APPROVED" && !e.stubId);
+      if (!eligible.length) {
+        showToast("All approved entries are already included in a pay stub.");
+        return;
+      }
+      const byEmployee = new Map();
+      eligible.forEach(e => {
+        if (!byEmployee.has(e.employeeId)) byEmployee.set(e.employeeId, []);
+        byEmployee.get(e.employeeId).push(e);
+      });
+      let created = 0;
+      byEmployee.forEach((entries, employeeId) => {
+        const emp = state.employees.find(item => item.id === employeeId);
+        const hours = entries.reduce((sum, e) => sum + e.hours, 0);
+        const gross = hours * emp.rate;
+        const deductions = gross * (emp.federalTax + emp.stateTax);
+        const stub = {
+          id: Date.now() + created,
+          employeeId,
+          period: "Jul 13 - Jul 26, 2026",
+          hours,
+          gross,
+          deductions,
+          net: gross - deductions,
+          payDate: "2026-07-29"
+        };
+        state.paystubs.push(stub);
+        entries.forEach(e => { e.stubId = stub.id; });
+        state.audit.unshift(`System generated the Jul 29 pay stub for ${emp.name} (${hours} hours).`);
+        created += 1;
+      });
+      state.audit.unshift(`${state.currentUser.name} finalized the pay run for Jul 13 - Jul 26, 2026.`);
+      showToast(`Pay run finalized. ${created} pay stub${created === 1 ? "" : "s"} generated for approved entries.`);
+    }
+
     function navButton(view, label) {
       const active = state.view === view ? "active" : "";
       return `<button class="${active}" onclick="setView('${view}')">${label}</button>`;
@@ -951,13 +987,16 @@
     }
 
     function paystubs() {
-      const stubs = state.paystubs.filter(p => p.employeeId === state.currentUser.employeeId);
+      const stubs = state.paystubs
+        .filter(p => p.employeeId === state.currentUser.employeeId)
+        .slice()
+        .sort((a, b) => b.payDate.localeCompare(a.payDate));
       return layout(`
         <div class="view-title"><div><h1>Pay Stub History</h1><p class="subtitle">Compensation history for finalized pay periods.</p></div></div>
         <section class="panel">
           <table>
-            <thead><tr><th>Pay Date</th><th>Period</th><th>Hours</th><th>Gross</th><th>Net</th></tr></thead>
-            <tbody>${stubs.map(p => `<tr><td>${p.payDate}</td><td>${p.period}</td><td>${p.hours}</td><td>${money(p.gross)}</td><td>${money(p.net)}</td></tr>`).join("")}</tbody>
+            <thead><tr><th>Pay Date</th><th>Period</th><th>Hours</th><th>Gross</th><th>Deductions</th><th>Net</th></tr></thead>
+            <tbody>${stubs.map(p => `<tr><td>${p.payDate}</td><td>${p.period}</td><td>${p.hours}</td><td>${money(p.gross)}</td><td>${money(p.deductions)}</td><td>${money(p.net)}</td></tr>`).join("")}</tbody>
           </table>
         </section>
       `);
@@ -1032,7 +1071,8 @@
         </section>`;
       const exportButtons = state.reportGenerated
         ? `<button class="secondary" onclick="exportReportCsv()">Export CSV</button>
-           <button class="secondary" onclick="printReport()">Print / Save PDF</button>`
+           <button class="secondary" onclick="printReport()">Print / Save PDF</button>
+           <button class="success" onclick="finalizePayRun()">Finalize Pay Run</button>`
         : "";
       return layout(`
         <div class="view-title">
