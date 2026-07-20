@@ -630,6 +630,11 @@
       showToast("Entry submitted successfully and sent to the approval queue.");
     }
 
+    function viewNote(id) {
+      const entry = state.entries.find(e => e.id === id);
+      alert(entry?.reviewNote || "No reviewer note yet.");
+    }
+
     function openReview(id) {
       state.activeReviewId = id;
       render();
@@ -834,7 +839,7 @@
                 <td>${e.hours}</td>
                 <td>${e.program}</td>
                 <td>${statusBadge(e.status)}</td>
-                <td>${admin && e.status === "PENDING" ? `<button class="secondary" onclick="openReview(${e.id})">Review</button>` : `<button class="secondary" onclick="alert('${(e.reviewNote || "No reviewer note yet.").replace(/'/g, "\\'")}')">View</button>`}</td>
+                <td>${admin && e.status === "PENDING" ? `<button class="secondary" onclick="openReview(${e.id})">Review</button>` : `<button class="secondary" onclick="viewNote(${e.id})">View</button>`}</td>
               </tr>
             `).join("")}
           </tbody>
