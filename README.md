@@ -30,3 +30,9 @@ This repository contains the Deliverable 5 submission package for Benji, an inte
 ## Repository Purpose
 
 This repository is scoped only to Deliverable 5: UXD, Prototyping & Testing. It includes the journey-map documentation, working prototype, functional testing evidence, and presentation support material required for submission.
+
+## Canvas Submission Checklist
+
+- Submit the compiled Word document from `deliverable-5/`.
+- Submit the recorded presentation video on Canvas.
+- Include this GitHub repository link so the grader can review the prototype, tests, commits, and merge history.
