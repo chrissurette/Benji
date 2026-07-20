@@ -795,7 +795,7 @@
         const emp = employees.find(item => item.id === e.employeeId);
         const gross = e.hours * emp.rate;
         const deductions = gross * (emp.federalTax + emp.stateTax);
-        return { name: emp.name, hours: e.hours, gross, deductions, net: gross - deductions };
+        return { name: emp.name, date: e.date, hours: e.hours, gross, deductions, net: gross - deductions };
       });
       const totals = rows.reduce((acc, row) => ({
         hours: acc.hours + row.hours,
@@ -806,10 +806,10 @@
       const reportBody = state.reportGenerated
         ? `<section class="panel">
           <table>
-            <thead><tr><th>Employee</th><th>Approved Hours</th><th>Gross Pay</th><th>Deductions</th><th>Net Pay</th></tr></thead>
+            <thead><tr><th>Employee</th><th>Date</th><th>Approved Hours</th><th>Gross Pay</th><th>Deductions</th><th>Net Pay</th></tr></thead>
             <tbody>
-              ${rows.map(r => `<tr><td>${r.name}</td><td>${r.hours}</td><td>${money(r.gross)}</td><td>${money(r.deductions)}</td><td>${money(r.net)}</td></tr>`).join("")}
-              <tr><th>Total</th><th>${totals.hours}</th><th>${money(totals.gross)}</th><th>${money(totals.deductions)}</th><th>${money(totals.net)}</th></tr>
+              ${rows.map(r => `<tr><td>${r.name}</td><td>${r.date}</td><td>${r.hours}</td><td>${money(r.gross)}</td><td>${money(r.deductions)}</td><td>${money(r.net)}</td></tr>`).join("")}
+              <tr><th>Total</th><th></th><th>${totals.hours}</th><th>${money(totals.gross)}</th><th>${money(totals.deductions)}</th><th>${money(totals.net)}</th></tr>
             </tbody>
           </table>
         </section>`
