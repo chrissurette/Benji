@@ -10,7 +10,7 @@ This change log tracks the major artifact updates included in the Deliverable 5 
 | Functional testing | Added a CSV test-case file with 12 functional test cases. |
 | Journey map | Added a separate Markdown journey-map summary for quick review. |
 | Testing results | Added a testing summary showing coverage areas and pass results. |
-| Presentation support | Added a presentation script and prototype demo checklist for the recorded Canvas presentation. |
+| Presentation support | Added a three-part presentation draft and prototype demo checklist for the recorded Canvas presentation. |
 | Prototype persistence | Added localStorage persistence with a Reset Demo Data control on the login screen. |
 | Report export | Added CSV export and print/save-as-PDF support to the payroll report. |
 | Employee management | Added the employee add/edit/deactivate workflow with validation and audit events (FC-04). |
