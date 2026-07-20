@@ -1,0 +1,13 @@
+Test ID,Feature / Touchpoint,Precondition,Test Steps,Expected Result,Actual Result,Status
+TC-01,Login - valid employee credentials,Employee account exists and is active,"Open prototype; enter emma.employee@benji.test and Employee#123; click Log In",Employee is authenticated and redirected to Employee Dashboard,As expected,Pass
+TC-02,Login - invalid credentials,Prototype is on Login screen,"Enter an incorrect password; click Log In",System displays login failure message and does not open a protected screen,As expected,Pass
+TC-03,Role-based dashboard routing,Admin account exists and is active,"Use admin login from Login screen",Admin is redirected to Admin Dashboard with admin navigation,As expected,Pass
+TC-04,Submit valid time entry,Employee is logged in and active pay period is open,"Open Log Hours; enter valid date, hours, program, and notes; click Submit Entry",Entry is saved with PENDING status and user is redirected to My Timesheets,As expected,Pass
+TC-05,Reject future-dated time entry,Employee is logged in,"Open Log Hours; choose a date after 2026-07-19; click Submit Entry",System displays Future date not allowed and does not save the entry,As expected,Pass
+TC-06,Reject invalid hours,Employee is logged in,"Open Log Hours; enter 0 or more than 24 hours; click Submit Entry",System displays hours validation message and does not save the entry,As expected,Pass
+TC-07,Reject duplicate entry,Employee is logged in and an entry exists for same date/program,"Submit a second entry with same employee, date, and program",System displays duplicate entry message and does not save the second entry,As expected,Pass
+TC-08,Approval queue displays pending entries,Admin is logged in and at least one pending entry exists,"Open Review Queue",Pending entries appear in a reviewable table with Review action,As expected,Pass
+TC-09,Approve a timesheet entry,Admin is logged in and a pending entry exists,"Open Review Queue; click Review; click Approve",Entry status changes to APPROVED; audit event is recorded; queue refreshes,As expected,Pass
+TC-10,Require notes when rejecting or flagging,Admin is reviewing a pending entry,"Click Review; leave note blank; click Reject or Flag",System displays reviewer notes required and does not save decision,As expected,Pass
+TC-11,Employee sees review outcome,Employee has an entry reviewed by admin,"Log in as employee; open My Timesheets",Reviewed entry displays updated APPROVED/REJECTED/FLAGGED status,As expected,Pass
+TC-12,Generate payroll report,Admin is logged in and approved entries exist,"Open Reports; click Generate Report",Report displays employee rows, hours, gross pay, deductions, net pay, and totals row,As expected,Pass
