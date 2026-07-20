@@ -397,6 +397,14 @@
       .login-panel { padding: 20px; }
       th:nth-child(4), td:nth-child(4) { display: none; }
     }
+
+    @media print {
+      header, button, .actions, .toast { display: none !important; }
+      body { background: white; }
+      main { padding: 0; }
+      .panel, .card { border: none; }
+      th { background: white; }
+    }
   </style>
 </head>
 <body>
@@ -840,13 +848,13 @@
       `);
     }
 
-    function reportView() {
+    function buildReportRows() {
       const approved = state.entries.filter(e => e.status === "APPROVED");
       const rows = approved.map(e => {
         const emp = state.employees.find(item => item.id === e.employeeId);
         const gross = e.hours * emp.rate;
         const deductions = gross * (emp.federalTax + emp.stateTax);
-        return { name: emp.name, date: e.date, hours: e.hours, gross, deductions, net: gross - deductions };
+        return { employeeId: emp.id, name: emp.name, date: e.date, hours: e.hours, gross, deductions, net: gross - deductions };
       });
       const totals = rows.reduce((acc, row) => ({
         hours: acc.hours + row.hours,
@@ -854,6 +862,46 @@
         deductions: acc.deductions + row.deductions,
         net: acc.net + row.net
       }), { hours: 0, gross: 0, deductions: 0, net: 0 });
+      return { rows, totals };
+    }
+
+    function csvField(value) {
+      const text = String(value);
+      return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+
+    function exportReportCsv() {
+      const { rows, totals } = buildReportRows();
+      if (!rows.length) {
+        showToast("No approved entries are available to export.");
+        return;
+      }
+      const lines = [
+        ["Employee", "Date", "Approved Hours", "Gross Pay", "Deductions", "Net Pay"],
+        ...rows.map(r => [r.name, r.date, r.hours, r.gross.toFixed(2), r.deductions.toFixed(2), r.net.toFixed(2)]),
+        ["Total", "", totals.hours, totals.gross.toFixed(2), totals.deductions.toFixed(2), totals.net.toFixed(2)]
+      ];
+      const csv = lines.map(line => line.map(csvField).join(",")).join("\r\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "benji_payroll_report_2026-07-13_to_2026-07-26.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+      state.audit.unshift(`${state.currentUser.name} exported the payroll report as CSV.`);
+      showToast("Payroll report exported as CSV.");
+    }
+
+    function printReport() {
+      state.audit.unshift(`${state.currentUser.name} printed the payroll report.`);
+      saveState();
+      window.print();
+    }
+
+    function reportView() {
+      const { rows, totals } = buildReportRows();
       const reportBody = state.reportGenerated
         ? `<section class="panel">
           <table>
@@ -867,10 +915,14 @@
         : `<section class="panel">
           <p class="subtitle">No report generated yet. Click <strong>Generate Report</strong> to build the payroll report for all approved entries in this pay period.</p>
         </section>`;
+      const exportButtons = state.reportGenerated
+        ? `<button class="secondary" onclick="exportReportCsv()">Export CSV</button>
+           <button class="secondary" onclick="printReport()">Print / Save PDF</button>`
+        : "";
       return layout(`
         <div class="view-title">
           <div><h1>Payroll Report Generator</h1><p class="subtitle">Pay period: Jul 13 - Jul 26, 2026</p></div>
-          <button onclick="generateReport()">Generate Report</button>
+          <div class="actions"><button onclick="generateReport()">Generate Report</button>${exportButtons}</div>
         </div>
         ${reportBody}
       `);
