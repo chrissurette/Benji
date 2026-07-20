@@ -297,6 +297,8 @@
     .status.approved { color: var(--green); background: #e9f7ef; border-color: #b7e2ca; }
     .status.rejected { color: var(--red); background: #fdecec; border-color: #f1c1c1; }
     .status.flagged { color: var(--teal); background: #e8f7fa; border-color: #b8e2e8; }
+    .status.active { color: var(--green); background: #e9f7ef; border-color: #b7e2ca; }
+    .status.inactive { color: var(--red); background: #fdecec; border-color: #f1c1c1; }
 
     .toast {
       margin: 0 0 14px;
@@ -438,6 +440,7 @@
         ],
         audit: ["Maya Chen approved Emma Rivera's 07/12 entry.", "System generated Jul 15 pay stub for Emma Rivera."],
         activeReviewId: null,
+        editingEmployeeId: null,
         reportGenerated: false
       };
     }
@@ -545,6 +548,11 @@
       const error = document.getElementById("entryError");
       error.textContent = "";
 
+      const employeeRecord = state.employees.find(e => e.id === state.currentUser.employeeId);
+      if (!employeeRecord || !employeeRecord.active) {
+        error.textContent = "Your employee record is inactive. Contact the payroll administrator.";
+        return;
+      }
       if (date > TODAY) {
         error.textContent = "Future date not allowed.";
         return;
@@ -821,17 +829,124 @@
       `);
     }
 
+    function openEmployeeForm(id) {
+      state.editingEmployeeId = id;
+      render();
+    }
+
+    function closeEmployeeForm() {
+      state.editingEmployeeId = null;
+      render();
+    }
+
+    function saveEmployee(event) {
+      event.preventDefault();
+      const form = new FormData(event.target);
+      const name = form.get("name").trim();
+      const role = form.get("role").trim();
+      const rate = Number(form.get("rate"));
+      const federalTaxPct = Number(form.get("federalTax"));
+      const error = document.getElementById("employeeError");
+      error.textContent = "";
+
+      if (!name || !role) {
+        error.textContent = "Name and role are both required.";
+        return;
+      }
+      if (!rate || rate < 1 || rate > 200) {
+        error.textContent = "Hourly rate must be between 1 and 200.";
+        return;
+      }
+      if (Number.isNaN(federalTaxPct) || federalTaxPct < 0 || federalTaxPct > 50) {
+        error.textContent = "Federal tax must be between 0% and 50%.";
+        return;
+      }
+      const duplicateName = state.employees.some(e =>
+        e.id !== state.editingEmployeeId &&
+        e.name.toLowerCase() === name.toLowerCase()
+      );
+      if (duplicateName) {
+        error.textContent = "An employee with that name already exists.";
+        return;
+      }
+
+      if (state.editingEmployeeId === "new") {
+        state.employees.push({ id: Date.now(), name, role, rate, federalTax: federalTaxPct / 100, stateTax: 0, active: true });
+        state.audit.unshift(`${state.currentUser.name} added employee ${name}.`);
+      } else {
+        const emp = state.employees.find(e => e.id === state.editingEmployeeId);
+        emp.name = name;
+        emp.role = role;
+        emp.rate = rate;
+        emp.federalTax = federalTaxPct / 100;
+        state.audit.unshift(`${state.currentUser.name} updated the employee record for ${name}.`);
+      }
+      state.editingEmployeeId = null;
+      showToast("Employee record saved.");
+    }
+
+    function toggleEmployeeActive(id) {
+      const emp = state.employees.find(e => e.id === id);
+      emp.active = !emp.active;
+      state.audit.unshift(`${state.currentUser.name} ${emp.active ? "reactivated" : "deactivated"} employee ${emp.name}.`);
+      showToast(`${emp.name} is now ${emp.active ? "ACTIVE" : "INACTIVE"}.`);
+    }
+
     function employeesView() {
+      const editingId = state.editingEmployeeId;
+      const editingEmp = editingId && editingId !== "new" ? state.employees.find(e => e.id === editingId) : null;
+      const modal = editingId ? `
+        <div class="modal-backdrop open">
+          <section class="modal">
+            <h2>${editingEmp ? "Edit Employee" : "Add Employee"}</h2>
+            <form class="form-grid" onsubmit="saveEmployee(event)">
+              <label class="full">Full Name
+                <input name="name" value="${editingEmp ? esc(editingEmp.name) : ""}">
+              </label>
+              <label class="full">Role / Program
+                <input name="role" value="${editingEmp ? esc(editingEmp.role) : ""}">
+              </label>
+              <label>Hourly Rate (USD)
+                <input type="number" name="rate" step="0.25" min="1" max="200" value="${editingEmp ? editingEmp.rate : 20}">
+              </label>
+              <label>Federal Tax (%)
+                <input type="number" name="federalTax" step="1" min="0" max="50" value="${editingEmp ? Math.round(editingEmp.federalTax * 100) : 10}">
+              </label>
+              <div class="error full" id="employeeError"></div>
+              <div class="actions full">
+                <button type="submit">Save Employee</button>
+                <button type="button" class="secondary" onclick="closeEmployeeForm()">Cancel</button>
+              </div>
+            </form>
+          </section>
+        </div>
+      ` : "";
       return layout(`
-        <div class="view-title"><div><h1>Employee Directory</h1><p class="subtitle">Active employee records used for payroll calculation.</p></div></div>
+        <div class="view-title">
+          <div><h1>Employee Directory</h1><p class="subtitle">Employee records used for payroll calculation.</p></div>
+          <button onclick="openEmployeeForm('new')">Add Employee</button>
+        </div>
         <section class="panel">
           <table>
-            <thead><tr><th>Name</th><th>Role</th><th>Rate</th><th>Federal Tax</th><th>Status</th></tr></thead>
+            <thead><tr><th>Name</th><th>Role</th><th>Rate</th><th>Federal Tax</th><th>Status</th><th>Action</th></tr></thead>
             <tbody>
-              ${state.employees.map(e => `<tr><td>${esc(e.name)}</td><td>${esc(e.role)}</td><td>${money(e.rate)}/hr</td><td>${Math.round(e.federalTax * 100)}%</td><td>${statusBadge("APPROVED").replace("APPROVED", "ACTIVE")}</td></tr>`).join("")}
+              ${state.employees.map(e => `
+                <tr>
+                  <td>${esc(e.name)}</td>
+                  <td>${esc(e.role)}</td>
+                  <td>${money(e.rate)}/hr</td>
+                  <td>${Math.round(e.federalTax * 100)}%</td>
+                  <td>${statusBadge(e.active ? "ACTIVE" : "INACTIVE")}</td>
+                  <td><div class="actions">
+                    <button class="secondary" onclick="openEmployeeForm(${e.id})">Edit</button>
+                    <button class="secondary" onclick="toggleEmployeeActive(${e.id})">${e.active ? "Deactivate" : "Reactivate"}</button>
+                  </div></td>
+                </tr>
+              `).join("")}
             </tbody>
           </table>
         </section>
+        ${modal}
       `);
     }
 
