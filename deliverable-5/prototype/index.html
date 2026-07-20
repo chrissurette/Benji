@@ -425,7 +425,8 @@
         { id: 501, employeeId: 1, period: "Jun 29 - Jul 12, 2026", hours: 38, gross: 950, deductions: 114, net: 836, payDate: "2026-07-15" }
       ],
       audit: ["Maya Chen approved Emma Rivera's 07/12 entry.", "System generated Jul 15 pay stub for Emma Rivera."],
-      activeReviewId: null
+      activeReviewId: null,
+      reportGenerated: false
     };
 
     const root = document.getElementById("root");
@@ -450,6 +451,7 @@
     function setView(view) {
       state.view = view;
       state.toast = "";
+      state.reportGenerated = false;
       render();
     }
 
@@ -556,6 +558,7 @@
         return;
       }
       state.view = "report";
+      state.reportGenerated = true;
       state.toast = "Report generated.";
       render();
     }
@@ -800,12 +803,8 @@
         deductions: acc.deductions + row.deductions,
         net: acc.net + row.net
       }), { hours: 0, gross: 0, deductions: 0, net: 0 });
-      return layout(`
-        <div class="view-title">
-          <div><h1>Payroll Report Generator</h1><p class="subtitle">Pay period: Jul 13 - Jul 26, 2026</p></div>
-          <button onclick="generateReport()">Generate Report</button>
-        </div>
-        <section class="panel">
+      const reportBody = state.reportGenerated
+        ? `<section class="panel">
           <table>
             <thead><tr><th>Employee</th><th>Approved Hours</th><th>Gross Pay</th><th>Deductions</th><th>Net Pay</th></tr></thead>
             <tbody>
@@ -813,7 +812,16 @@
               <tr><th>Total</th><th>${totals.hours}</th><th>${money(totals.gross)}</th><th>${money(totals.deductions)}</th><th>${money(totals.net)}</th></tr>
             </tbody>
           </table>
-        </section>
+        </section>`
+        : `<section class="panel">
+          <p class="subtitle">No report generated yet. Click <strong>Generate Report</strong> to build the payroll report for all approved entries in this pay period.</p>
+        </section>`;
+      return layout(`
+        <div class="view-title">
+          <div><h1>Payroll Report Generator</h1><p class="subtitle">Pay period: Jul 13 - Jul 26, 2026</p></div>
+          <button onclick="generateReport()">Generate Report</button>
+        </div>
+        ${reportBody}
       `);
     }
 
