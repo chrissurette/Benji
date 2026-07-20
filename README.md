@@ -6,7 +6,7 @@ This repository contains the Deliverable 5 submission package for Benji, an inte
 
 - Final Word document: `deliverable-5/Benji_Deliverable5_UXD_Prototype_Testing.docx`
 - Functional test cases: `deliverable-5/functional_test_cases.csv`
-- Presentation script: `deliverable-5/presentation_script.md`
+- Three-part presentation draft: `three_part_presentation_draft.md`
 - Prototype: `deliverable-5/prototype/index.html`
 - User journey summary: `deliverable-5/user_journey_map.md`
 - Testing results summary: `deliverable-5/testing_results_summary.md`
