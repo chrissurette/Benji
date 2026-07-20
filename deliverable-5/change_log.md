@@ -11,6 +11,12 @@ This change log tracks the major artifact updates included in the Deliverable 5 
 | Journey map | Added a separate Markdown journey-map summary for quick review. |
 | Testing results | Added a testing summary showing coverage areas and pass results. |
 | Presentation support | Added a presentation script and prototype demo checklist for the recorded Canvas presentation. |
+| Prototype persistence | Added localStorage persistence with a Reset Demo Data control on the login screen. |
+| Report export | Added CSV export and print/save-as-PDF support to the payroll report. |
+| Employee management | Added the employee add/edit/deactivate workflow with validation and audit events (FC-04). |
+| Pay stub generation | Added pay-run finalization that generates pay stubs from approved entries (FC-05). |
+| Security hardening | Added five-attempt account lockout and 15-minute inactivity session timeout (FC-07). |
+| Functional testing | Extended the functional test suite from 12 to 20 test cases covering the new features. |
 
 ## Artifact Progression
 

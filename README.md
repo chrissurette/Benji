@@ -28,8 +28,12 @@ This repository contains the Deliverable 5 submission package for Benji, an inte
 4. Confirm the entry appears as `PENDING` in My Timesheets.
 5. Log out and use the admin login.
 6. Open the Review Queue and approve the pending entry.
-7. Open Reports and generate the payroll report.
-8. Log back in as the employee and confirm the entry status changed to `APPROVED`.
+7. Open Reports, generate the payroll report, and use Export CSV / Print for output.
+8. Click Finalize Pay Run to generate pay stubs from the approved entries.
+9. Optionally manage employee records (add/edit/deactivate) from the Employees screen.
+10. Log back in as the employee and confirm the entry shows `APPROVED` and the new pay stub appears.
+
+Prototype data persists in the browser between reloads. Use the **Reset Demo Data** button on the login screen to restore the original demo scenario.
 
 ## Repository Purpose
 
